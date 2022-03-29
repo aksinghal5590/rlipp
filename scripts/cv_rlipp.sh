@@ -15,9 +15,7 @@ hidden="${modeldir}/hidden"
 
 cpu_count=$7
 
-genotype_hiddens=`grep "genotype_hiddens" "${modeldir}/train.log" | tail -1`
-readarray -d : -t str <<< "$genotype_hiddens"
-neurons=`echo "${str[1]}" | xargs`
+neurons=6
 
 python -u ${homedir}/src/rlipp_helper.py -hidden $hidden -ontology $ontology -test $test \
 	-gene2idfile $gene2idfile -cell2idfile $cell2idfile -sys_output $sys_output -gene_output $gene_output \
