@@ -36,6 +36,19 @@ class RLIPPCalculator():
 		self.drug_count = args.drug_count
 		if self.drug_count == 0:
 			self.drug_count = len(self.drugs)
+			
+		#Uncomment it if the gene hidden files don't exist
+		#self.create_gene_hidden_files()
+
+
+	# Create hidden files for all genes which are just their mutation values
+	def create_gene_hidden_files(self):
+		cell_id_map = dict(zip(self.cell_index['C'], self.cell_index['I']))
+		cell_line_ids = np.array([cell_id_map[x] for x in self.test_df['C'].tolist()])
+		for i, gene in enumerate(self.genes):
+			file_name = self.hidden_dir + gene + '.hidden'
+			mat_data_sub = self.cell_mutation[cell_line_ids, i].ravel()
+			np.savetxt(file_name, mat_data_sub, fmt='%.3f')
 
 
 	#Create a map of a list of the position of a drug in the test file
@@ -137,15 +150,6 @@ class RLIPPCalculator():
 		return result
 
 
-	#Calculates Spearman correlation between Gene embeddings and Predicted AUC
-	def calc_gene_rho(self, gene_features, position_map, gene, drug):
-		pred = np.take(self.predicted_vals, position_map)
-		gene_embeddings = np.take(gene_features, position_map)
-		rho, p_val = stats.spearmanr(pred, gene_embeddings)
-		result = '{}\t{:.3f}\t{:.3e}\n'.format(gene, rho, p_val)
-		return result
-
-
 	#Calculates RLIPP scores for top n drugs (n = drug_count), and
 	#prints the result in "Drug Term P_rho C_rho RLIPP" format
 	def calc_scores(self):
@@ -160,21 +164,11 @@ class RLIPPCalculator():
 
 		rlipp_file = open(self.rlipp_file, "w")
 		rlipp_file.write('Term\tP_rho\tP_pval\tC_rho\tC_pval\tRLIPP\n')
-		gene_rho_file = open(self.gene_rho_file, "w")
-		gene_rho_file.write('Gene\tRho\tP_val\n')
-
 		with Parallel(backend="multiprocessing", n_jobs=self.cpu_count) as parallel:
 			for i, drug in enumerate(sorted_drugs):
 				start = time.time()
-
 				rlipp_results = parallel(delayed(self.calc_term_rlipp)(feature_map[term], child_feature_map[term], drug_pos_map[drug], term, drug) for term in self.terms)
 				for result in rlipp_results:
 					rlipp_file.write(result)
-
-				gene_rho_results = parallel(delayed(self.calc_gene_rho)(feature_map[gene], drug_pos_map[drug], gene, drug) for gene in self.gene)
-				for result in gene_rho_results:
-					gene_rho_file.write(result)
-
 				print('Drug {} completed in {:.4f} seconds'.format((i+1), (time.time() - start)))
-		gene_rho_file.close()
 		rlipp_file.close()
