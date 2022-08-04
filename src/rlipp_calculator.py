@@ -23,8 +23,8 @@ class RLIPPCalculator():
 		self.predicted_vals = np.loadtxt(args.predicted)
 		self.genes = pd.read_csv(args.gene2idfile, sep='\t', header=None, names=['I', 'G'])['G']
 		self.cell_index = pd.read_csv(args.cell2idfile, sep="\t", header=None, names=['I', 'C'])
-		self.rlipp_file = args.sys_output
-		self.gene_rho_file = args.gene_output
+		self.cell_mutation = np.loadtxt(args.cell_mutation, delimiter=',')
+		self.rlipp_file = args.output
 		self.cpu_count = args.cpu_count
 		self.num_hiddens_genotype = args.genotype_hiddens
 

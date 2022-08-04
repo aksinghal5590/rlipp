@@ -10,4 +10,4 @@ cpu_count=8
 
 homedir="..."
 
-bash "${homedir}/scripts/cv_rlipp.sh" $homedir $cpu_count
+bash "${homedir}/scripts/rlipp.sh" $homedir $cpu_count
